@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◢ 斐波那契数列演示 | Fibonacci Sequence ◣</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --cyber-cyan: #00ffff;
+      --cyber-magenta: #ff00ff;
+      --cyber-yellow: #ffd700;
+      --cyber-green: #00ff00;
+      --cyber-orange: #ff6600;
+      --cyber-dark: #0a0e27;
+      --cyber-darker: #05070f;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: var(--cyber-darker);
+      color: var(--cyber-cyan);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 1400px;
+      aspect-ratio: 16 / 9;
+      background: var(--cyber-dark);
+      border: 3px solid var(--cyber-magenta);
+      border-radius: 10px;
+      box-shadow:
+        0 0 30px rgba(255, 0, 255, 0.6),
+        0 0 60px rgba(0, 255, 255, 0.3),
+        inset 0 0 50px rgba(255, 0, 255, 0.05);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+
+      /* 网格背景动画 */
+      background-image:
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      background-position: 0 0, 0 0;
+      animation: gridScroll 10s linear infinite;
+    }
+
+    @keyframes gridScroll {
+      0% { background-position: 0 0, 0 0; }
+      100% { background-position: 50px 50px, 50px 50px; }
+    }
+
+
+    /* 标题区域 */
+    .header {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: var(--cyber-magenta);
+      text-shadow:
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(255, 0, 255, 0.5),
+        0 0 30px rgba(0, 255, 255, 0.3);
+      letter-spacing: 3px;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--cyber-cyan);
+      opacity: 0.7;
+      letter-spacing: 2px;
+    }
+
+    /* 控制按钮 */
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid var(--cyber-cyan);
+      color: var(--cyber-cyan);
+      padding: 0.5rem 1.2rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      background: rgba(0, 255, 255, 0.1);
+      box-shadow:
+        0 0 20px rgba(0, 255, 255, 0.6),
+        inset 0 0 10px rgba(0, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #showCodeBtn {
+      border-color: var(--cyber-magenta);
+      color: var(--cyber-magenta);
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+    }
+
+    #showCodeBtn:hover {
+      background: rgba(255, 0, 255, 0.1);
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.6),
+        inset 0 0 10px rgba(255, 0, 255, 0.2);
+    }
+
+    /* 场景说明 */
+    .scene-info {
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid var(--cyber-yellow);
+      border-radius: 5px;
+      padding: 0.7rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .scene-info p {
+      color: var(--cyber-yellow);
+      font-size: 0.9rem;
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    }
+
+    /* 可视化容器 */
+    .visualization-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+
+    /* 数列显示区域 */
+    .sequence-display {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+      padding: 1rem;
+      min-height: 200px;
+      align-items: center;
+    }
+
+    .fib-number {
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid var(--cyber-cyan);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--cyber-cyan);
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+      box-shadow:
+        0 0 15px rgba(0, 255, 255, 0.4),
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      position: relative;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .fib-number.new {
+      border-color: var(--cyber-magenta);
+      color: var(--cyber-magenta);
+      text-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+      box-shadow:
+        0 0 25px rgba(255, 0, 255, 0.6),
+        inset 0 0 15px rgba(255, 0, 255, 0.2);
+      animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .fib-number.calculating {
+      border-color: var(--cyber-yellow);
+      color: var(--cyber-yellow);
+      text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+      box-shadow:
+        0 0 25px rgba(255, 215, 0, 0.6),
+        inset 0 0 15px rgba(255, 215, 0, 0.2);
+      animation: pulse 0.8s ease-in-out infinite;
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.3) rotate(10deg);
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow:
+          0 0 25px rgba(255, 215, 0, 0.6),
+          inset 0 0 15px rgba(255, 215, 0, 0.2);
+      }
+      50% {
+        transform: scale(1.1);
+        box-shadow:
+          0 0 35px rgba(255, 215, 0, 0.9),
+          inset 0 0 20px rgba(255, 215, 0, 0.3);
+      }
+    }
+
+    /* 兔子可视化区域 */
+    .rabbit-visualization {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      min-height: 120px;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(0, 255, 255, 0.2);
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    .rabbit {
+      font-size: 2rem;
+      animation: hop 0.8s ease-in-out;
+      filter: drop-shadow(0 0 5px var(--cyber-cyan));
+    }
+
+    .rabbit.adult {
+      filter: drop-shadow(0 0 8px var(--cyber-magenta));
+    }
+
+    @keyframes hop {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-15px);
+      }
+    }
+
+    /* 统计面板 */
+    .stats-panel {
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid var(--cyber-cyan);
+      border-radius: 5px;
+      padding: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--cyber-cyan);
+      opacity: 0.7;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-value {
+      font-size: 1.3rem;
+      color: var(--cyber-magenta);
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(255, 0, 255, 0.6);
+    }
+
+    /* 图例 */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .legend-box {
+      width: 20px;
+      height: 20px;
+      border: 2px solid;
+      border-radius: 3px;
+      box-shadow: 0 0 10px;
+    }
+
+    .legend-box.cyan {
+      border-color: var(--cyber-cyan);
+      background: rgba(0, 255, 255, 0.2);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+    }
+
+    .legend-box.yellow {
+      border-color: var(--cyber-yellow);
+      background: rgba(255, 215, 0, 0.2);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    }
+
+    .legend-box.magenta {
+      border-color: var(--cyber-magenta);
+      background: rgba(255, 0, 255, 0.2);
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.4);
+    }
+
+    /* 完成消息 */
+    .completion-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(0, 0, 0, 0.95);
+      border: 3px solid var(--cyber-green);
+      border-radius: 10px;
+      padding: 2rem 3rem;
+      text-align: center;
+      z-index: 100;
+      box-shadow:
+        0 0 50px rgba(0, 255, 0, 0.8),
+        inset 0 0 30px rgba(0, 255, 0, 0.1);
+      transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      pointer-events: none;
+    }
+
+    .completion-message.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .completion-message h2 {
+      font-size: 2rem;
+      color: var(--cyber-green);
+      text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+      margin-bottom: 0.5rem;
+    }
+
+    /* 代码弹窗 */
+    .code-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(10, 14, 39, 0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .code-modal.show {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .code-modal-content {
+      background: rgba(0, 0, 0, 0.9);
+      border: 3px solid var(--cyber-magenta);
+      border-radius: 10px;
+      width: 70%;
+      max-height: 90%;
+      padding: 2rem;
+      overflow: auto;
+      box-shadow:
+        0 0 30px rgba(255, 0, 255, 0.8),
+        0 0 60px rgba(0, 255, 255, 0.5),
+        inset 0 0 40px rgba(255, 0, 255, 0.1);
+    }
+
+    .code-modal-content::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .code-modal-content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 5px;
+    }
+
+    .code-modal-content::-webkit-scrollbar-thumb {
+      background: var(--cyber-magenta);
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    }
+
+    .code-modal pre {
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: var(--cyber-cyan);
+      text-shadow: 0 0 3px rgba(0, 255, 255, 0.5);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1200px) {
+      h1 { font-size: 1.8rem; }
+      .fib-number { font-size: 1.2rem; padding: 0.8rem 1.2rem; }
+      .stats-panel { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .main-container { aspect-ratio: auto; min-height: 100vh; }
+      h1 { font-size: 1.5rem; }
+      button { font-size: 0.75rem; padding: 0.4rem 0.8rem; }
+      .fib-number { font-size: 1rem; padding: 0.6rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- 标题 -->
+    <div class="header">
+      <h1>◢ 斐波那契数列（兔子问题） ◣</h1>
+      <p class="subtitle">// FIBONACCI SEQUENCE - RABBIT REPRODUCTION //</p>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="controls">
+      <button id="startBtn">▶ START</button>
+      <button id="pauseBtn" disabled>⏸ PAUSE</button>
+      <button id="resetBtn">↻ RESET</button>
+      <button id="speedUpBtn">▶▶ SPEED UP</button>
+      <button id="slowDownBtn">◀◀ SLOW DOWN</button>
+      <button id="showCodeBtn">⚡ CODE</button>
+    </div>
+
+    <!-- 场景说明 -->
+    <div class="scene-info">
+      <p id="sceneText">准备开始演示：一对兔子每月可以繁殖一对新兔子，新生兔子在第二个月后开始繁殖...</p>
+    </div>
+
+    <!-- 可视化区域 -->
+    <div class="visualization-container">
+      <!-- 数列显示 -->
+      <div class="sequence-display" id="sequenceDisplay"></div>
+
+      <!-- 兔子可视化 -->
+      <div class="rabbit-visualization" id="rabbitVisualization"></div>
+    </div>
+
+    <!-- 统计面板 -->
+    <div class="stats-panel">
+      <div class="stat-item">
+        <div class="stat-label">月份 MONTH</div>
+        <div class="stat-value" id="monthValue">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">当前值 CURRENT</div>
+        <div class="stat-value" id="currentValue">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">成年兔 ADULTS</div>
+        <div class="stat-value" id="adultsValue">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">速度 SPEED</div>
+        <div class="stat-value" id="speedValue">1.0x</div>
+      </div>
+    </div>
+
+    <!-- 图例 -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-box cyan"></div>
+        <span>已生成数值</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box yellow"></div>
+        <span>计算中</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box magenta"></div>
+        <span>最新数值</span>
+      </div>
+    </div>
+
+    <!-- 完成消息 -->
+    <div class="completion-message" id="completionMessage">
+      <h2>✓ 演示完成</h2>
+      <p>SEQUENCE COMPLETED</p>
+    </div>
+
+    <!-- 代码弹窗 -->
+    <div class="code-modal" id="codeModal">
+      <div class="code-modal-content">
+        <pre id="cppCode">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+// 斐波那契数列 - 兔子繁殖问题
+// 问题描述：
+// 一对兔子从出生后第2个月起每个月都生一对兔子，
+// 小兔子长到第二个月后每个月又生一对兔子。
+// 问：第n个月时有多少对兔子？
+
+// 方法1：递归实现（简单但效率低）
+int fibonacciRecursive(int n) {
+    // 基础情况：第1个月和第2个月都是1对兔子
+    if (n &lt;= 2) {
+        return 1;
+    }
+    // 递归公式：F(n) = F(n-1) + F(n-2)
+    // F(n-1): 上个月的兔子
+    // F(n-2): 这个月新生的兔子（由两月前的成年兔子繁殖）
+    return fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2);
+}
+
+// 方法2：迭代实现（推荐，效率高）
+int fibonacciIterative(int n) {
+    if (n &lt;= 2) {
+        return 1;
+    }
+
+    int prev2 = 1;  // F(n-2): 前前个月的兔子数
+    int prev1 = 1;  // F(n-1): 前一个月的兔子数
+    int current = 0;
+
+    // 从第3个月开始迭代计算
+    for (int i = 3; i &lt;= n; i++) {
+        current = prev1 + prev2;  // 当前月 = 上月 + 前月
+        prev2 = prev1;            // 更新前前月
+        prev1 = current;          // 更新前月
+    }
+
+    return current;
+}
+
+// 方法3：数组存储（动态规划思想）
+vector&lt;int&gt; fibonacciArray(int n) {
+    vector&lt;int&gt; fib(n);
+
+    // 初始化前两个月
+    fib[0] = 1;
+    if (n &gt; 1) fib[1] = 1;
+
+    // 计算后续各月
+    for (int i = 2; i &lt; n; i++) {
+        fib[i] = fib[i-1] + fib[i-2];
+    }
+
+    return fib;
+}
+
+// 使用示例
+int main() {
+    int months = 12;
+
+    cout &lt;&lt; "方法1 - 递归实现：" &lt;&lt; endl;
+    cout &lt;&lt; "第 " &lt;&lt; months &lt;&lt; " 个月有 "
+         &lt;&lt; fibonacciRecursive(months) &lt;&lt; " 对兔子" &lt;&lt; endl;
+
+    cout &lt;&lt; "\n方法2 - 迭代实现：" &lt;&lt; endl;
+    cout &lt;&lt; "第 " &lt;&lt; months &lt;&lt; " 个月有 "
+         &lt;&lt; fibonacciIterative(months) &lt;&lt; " 对兔子" &lt;&lt; endl;
+
+    cout &lt;&lt; "\n方法3 - 数组存储（显示所有月份）：" &lt;&lt; endl;
+    vector&lt;int&gt; sequence = fibonacciArray(months);
+    for (int i = 0; i &lt; sequence.size(); i++) {
+        cout &lt;&lt; "第 " &lt;&lt; (i + 1) &lt;&lt; " 个月: "
+             &lt;&lt; sequence[i] &lt;&lt; " 对兔子" &lt;&lt; endl;
+    }
+
+    return 0;
+}
+
+/*
+数列规律：1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144...
+每一项都是前两项之和：F(n) = F(n-1) + F(n-2)
+
+兔子问题解释：
+月份1: 1对（初始的一对小兔子）
+月份2: 1对（小兔子还未成年）
+月份3: 2对（初始兔子成年并生了1对小兔子）
+月份4: 3对（初始兔子又生1对，第3月的小兔子还未成年）
+月份5: 5对（初始兔子又生1对，第3月的兔子成年也生1对）
+...依此类推
+
+时间复杂度：
+- 递归：O(2^n) - 指数级，非常慢
+- 迭代：O(n) - 线性，推荐使用
+- 数组：O(n) - 线性，需要额外空间
+
+空间复杂度：
+- 递归：O(n) - 递归调用栈
+- 迭代：O(1) - 常数空间
+- 数组：O(n) - 存储整个数列
+*/</pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 状态变量
+    let sequence = [];
+    let currentMonth = 0;
+    let isRunning = false;
+    let isPaused = false;
+    let animationSpeed = 1;
+    const MAX_MONTHS = 15;  // 显示前15个月
+
+    // DOM 元素
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const speedUpBtn = document.getElementById('speedUpBtn');
+    const slowDownBtn = document.getElementById('slowDownBtn');
+    const showCodeBtn = document.getElementById('showCodeBtn');
+    const codeModal = document.getElementById('codeModal');
+    const sequenceDisplay = document.getElementById('sequenceDisplay');
+    const rabbitVisualization = document.getElementById('rabbitVisualization');
+    const sceneText = document.getElementById('sceneText');
+    const monthValue = document.getElementById('monthValue');
+    const currentValue = document.getElementById('currentValue');
+    const adultsValue = document.getElementById('adultsValue');
+    const speedValue = document.getElementById('speedValue');
+    const completionMessage = document.getElementById('completionMessage');
+
+    // 初始化
+    function init() {
+      sequence = [];
+      currentMonth = 0;
+      sequenceDisplay.innerHTML = '';
+      rabbitVisualization.innerHTML = '';
+      updateStats();
+      updateScene('准备开始演示：一对兔子每月可以繁殖一对新兔子，新生兔子在第二个月后开始繁殖...');
+      completionMessage.classList.remove('show');
+    }
+
+    // 更新场景说明
+    function updateScene(text) {
+      sceneText.textContent = text;
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      monthValue.textContent = currentMonth;
+      currentValue.textContent = sequence.length > 0 ? sequence[sequence.length - 1] : 0;
+
+      // 计算成年兔子数（两个月前及更早的兔子）
+      let adults = 0;
+      if (currentMonth >= 2) {
+        adults = sequence[Math.max(0, currentMonth - 2)];
+      }
+      adultsValue.textContent = adults;
+      speedValue.textContent = animationSpeed.toFixed(2) + 'x';
+    }
+
+    // 渲染数列显示
+    function renderSequence(highlightIndex = -1, isCalculating = false) {
+      sequenceDisplay.innerHTML = '';
+
+      sequence.forEach((num, index) => {
+        const numDiv = document.createElement('div');
+        numDiv.className = 'fib-number';
+        numDiv.textContent = num;
+
+        if (index === highlightIndex) {
+          if (isCalculating) {
+            numDiv.classList.add('calculating');
+          } else {
+            numDiv.classList.add('new');
+          }
+        }
+
+        sequenceDisplay.appendChild(numDiv);
+      });
+    }
+
+    // 渲染兔子可视化
+    function renderRabbits(total, adults) {
+      rabbitVisualization.innerHTML = '';
+
+      // 限制显示的兔子数量，避免过多
+      const displayTotal = Math.min(total, 30);
+      const displayAdults = Math.min(adults, displayTotal);
+
+      // 显示成年兔子（大兔子）
+      for (let i = 0; i < displayAdults; i++) {
+        const rabbit = document.createElement('span');
+        rabbit.className = 'rabbit adult';
+        rabbit.textContent = '🐰';
+        rabbitVisualization.appendChild(rabbit);
+      }
+
+      // 显示幼年兔子（小兔子）
+      for (let i = displayAdults; i < displayTotal; i++) {
+        const rabbit = document.createElement('span');
+        rabbit.className = 'rabbit';
+        rabbit.textContent = '🐇';
+        rabbitVisualization.appendChild(rabbit);
+      }
+
+      // 如果实际数量超过显示数量，添加省略提示
+      if (total > 30) {
+        const more = document.createElement('span');
+        more.style.color = 'var(--cyber-yellow)';
+        more.style.fontSize = '1.2rem';
+        more.textContent = `... (共${total}对)`;
+        rabbitVisualization.appendChild(more);
+      }
+    }
+
+    // 延迟函数
+    async function sleep(ms) {
+      return new Promise(resolve => {
+        const adjustedMs = ms / animationSpeed;
+        const checkInterval = 50;
+        let elapsed = 0;
+
+        const interval = setInterval(() => {
+          if (!isPaused) {
+            elapsed += checkInterval;
+            if (elapsed >= adjustedMs) {
+              clearInterval(interval);
+              resolve();
+            }
+          }
+        }, checkInterval);
+      });
+    }
+
+    // 斐波那契数列生成算法
+    async function generateFibonacci() {
+      isRunning = true;
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+
+      updateScene('开始生成斐波那契数列...');
+      await sleep(1000);
+
+      // 第一个月：1对兔子
+      currentMonth = 1;
+      sequence.push(1);
+      updateScene('第1个月：初始有1对小兔子');
+      renderSequence(0);
+      renderRabbits(1, 0);
+      updateStats();
+      await sleep(1500);
+
+      if (!isRunning) return;
+
+      // 第二个月：还是1对兔子（还未成年）
+      currentMonth = 2;
+      sequence.push(1);
+      updateScene('第2个月：小兔子还未成年，仍然是1对');
+      renderSequence(1);
+      renderRabbits(1, 1);
+      updateStats();
+      await sleep(1500);
+
+      // 从第三个月开始，按照斐波那契规律生成
+      for (let month = 3; month <= MAX_MONTHS; month++) {
+        if (!isRunning) break;
+
+        currentMonth = month;
+
+        // 显示正在计算的两个数
+        updateScene(`第${month}个月：计算中... F(${month}) = F(${month-1}) + F(${month-2}) = ${sequence[month-2]} + ${sequence[month-3]}`);
+        renderSequence(month - 2, true);
+        await sleep(1000);
+
+        // 高亮第二个加数
+        renderSequence(month - 3, true);
+        await sleep(1000);
+
+        // 计算新值：F(n) = F(n-1) + F(n-2)
+        const newValue = sequence[month - 2] + sequence[month - 3];
+        sequence.push(newValue);
+
+        // 计算成年兔子数和幼年兔子数
+        const adults = sequence[month - 3];  // 两个月前的兔子数
+
+        updateScene(`第${month}个月：${sequence[month-2]} + ${sequence[month-3]} = ${newValue}对兔子（${adults}对成年 + ${newValue - adults}对幼年）`);
+        renderSequence(month - 1);
+        renderRabbits(newValue, adults);
+        updateStats();
+        await sleep(2000);
+      }
+
+      if (isRunning) {
+        updateScene('演示完成！斐波那契数列：每一项都是前两项之和 F(n) = F(n-1) + F(n-2)');
+        completionMessage.classList.add('show');
+      }
+
+      isRunning = false;
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        init();
+        generateFibonacci();
+      }
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? '▶ RESUME' : '⏸ PAUSE';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      isRunning = false;
+      isPaused = false;
+      pauseBtn.textContent = '⏸ PAUSE';
+      pauseBtn.disabled = true;
+      startBtn.disabled = false;
+      init();
+    });
+
+    speedUpBtn.addEventListener('click', () => {
+      animationSpeed = Math.min(4, animationSpeed * 1.5);
+      updateStats();
+    });
+
+    slowDownBtn.addEventListener('click', () => {
+      animationSpeed = Math.max(0.25, animationSpeed / 1.5);
+      updateStats();
+    });
+
+    // 代码弹窗控制
+    showCodeBtn.addEventListener('click', () => {
+      codeModal.classList.add('show');
+    });
+
+    codeModal.addEventListener('click', (e) => {
+      if (e.target === codeModal) {
+        codeModal.classList.remove('show');
+      }
+    });
+
+    const codeContent = document.querySelector('.code-modal-content');
+    if (codeContent) {
+      codeContent.addEventListener('click', () => {
+        codeModal.classList.remove('show');
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && codeModal.classList.contains('show')) {
+        codeModal.classList.remove('show');
+      }
+    });
+
+    // 页面加载时初始化
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

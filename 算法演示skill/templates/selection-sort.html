@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>选择排序动画 - 赛博朋克版</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', "PingFang SC", sans-serif;
+      background:
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        #0a0e27;
+      background-size: 50px 50px;
+      background-position: 0 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #00ffff;
+      overflow: hidden;
+      position: relative;
+      animation: gridScroll 10s linear infinite;
+    }
+
+    @keyframes gridScroll {
+      from {
+        background-position: 0 0;
+      }
+      to {
+        background-position: 0 50px;
+      }
+    }
+
+    /* 保持原有的伪元素用于其他效果 */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+
+    /* 16:9 主容器 */
+    .main-container {
+      width: 90vw;
+      max-width: 1600px;
+      aspect-ratio: 16 / 9;
+      background: rgba(10, 14, 39, 0.95);
+      border: 2px solid #ff00ff;
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.5),
+        0 0 40px rgba(0, 255, 255, 0.3),
+        inset 0 0 60px rgba(255, 0, 255, 0.1);
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    /* 赛博朋克霓虹标题 */
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow:
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(0, 255, 255, 0.6);
+      animation: neonPulse 2s ease-in-out infinite;
+      letter-spacing: 3px;
+    }
+
+    @keyframes neonPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      text-align: center;
+      color: #00ffff;
+      margin-bottom: 1.5rem;
+      opacity: 0.8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      border: 2px solid #ff00ff;
+      border-radius: 0;
+      background: transparent;
+      color: #ff00ff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover {
+      background: rgba(255, 0, 255, 0.2);
+      box-shadow:
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(255, 0, 255, 0.5),
+        inset 0 0 10px rgba(255, 0, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+      border-color: #666;
+      color: #666;
+    }
+
+    .scene-info {
+      background: rgba(0, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 1rem;
+      border-radius: 0;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    .scene-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #ff00ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .scene-description {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #00ffff;
+      opacity: 0.9;
+    }
+
+    .visualization-container {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 0, 255, 0.3);
+      padding: 2rem;
+      flex: 1;
+      position: relative;
+      overflow: visible;
+      box-shadow: inset 0 0 30px rgba(255, 0, 255, 0.1);
+    }
+
+    .array-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 10px;
+      height: 100%;
+      position: relative;
+      padding: 3rem 0 2.5rem 0;
+    }
+
+    .bar-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .bar-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bar {
+      width: 55px;
+      background: linear-gradient(to top, #0a0e27, #00ffff);
+      border: 2px solid #00ffff;
+      position: relative;
+      box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.6),
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(0, 255, 255, 0.2);
+      clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+    }
+
+    .bar-value {
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: #00ffff;
+      text-shadow:
+        0 0 5px rgba(0, 255, 255, 0.8),
+        0 0 10px rgba(0, 255, 255, 0.5);
+      font-family: 'Orbitron', monospace;
+      margin-bottom: 8px;
+      white-space: nowrap;
+    }
+
+    .bar-index {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #ff00ff;
+      text-shadow:
+        0 0 5px rgba(255, 0, 255, 0.8),
+        0 0 10px rgba(255, 0, 255, 0.5);
+      font-family: 'Orbitron', monospace;
+      background: rgba(255, 0, 255, 0.1);
+      padding: 2px 8px;
+      border: 1px solid rgba(255, 0, 255, 0.3);
+      white-space: nowrap;
+      margin-top: 8px;
+    }
+
+    /* 当前最小值 */
+    .bar-wrapper.minimum .bar {
+      background: linear-gradient(to top, #ff00ff, #ff0080);
+      border-color: #ff00ff;
+      animation: minimumGlow 1.5s ease-in-out infinite;
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.9),
+        0 0 40px rgba(255, 0, 255, 0.6),
+        inset 0 0 15px rgba(255, 0, 255, 0.4);
+    }
+
+    .bar-wrapper.minimum .bar::after {
+      content: "MIN";
+      position: absolute;
+      top: -55px;
+      background: #ff00ff;
+      color: #0a0e27;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+    }
+
+    /* 当前正在比较的元素 */
+    .bar-wrapper.comparing .bar-container {
+      animation: compareFlash 0.6s ease-in-out;
+    }
+
+    .bar-wrapper.comparing .bar {
+      background: linear-gradient(to top, #ffd700, #ffff00);
+      border-color: #ffd700;
+      box-shadow:
+        0 0 15px rgba(255, 215, 0, 0.9),
+        0 0 30px rgba(255, 215, 0, 0.6),
+        inset 0 0 10px rgba(255, 215, 0, 0.4);
+    }
+
+    /* 已排序的元素 */
+    .bar-wrapper.sorted .bar {
+      background: linear-gradient(to top, #00ff00, #00ff88);
+      border-color: #00ff00;
+      box-shadow:
+        0 0 15px rgba(0, 255, 0, 0.8),
+        0 0 30px rgba(0, 255, 0, 0.5),
+        inset 0 0 10px rgba(0, 255, 0, 0.3);
+    }
+
+    /* 未排序区域 */
+    .bar-wrapper.unsorted .bar {
+      opacity: 0.6;
+    }
+
+    @keyframes minimumGlow {
+      0%, 100% {
+        box-shadow:
+          0 0 20px rgba(255, 0, 255, 0.9),
+          0 0 40px rgba(255, 0, 255, 0.6),
+          inset 0 0 15px rgba(255, 0, 255, 0.4);
+      }
+      50% {
+        box-shadow:
+          0 0 30px rgba(255, 0, 255, 1),
+          0 0 60px rgba(255, 0, 255, 0.8),
+          inset 0 0 20px rgba(255, 0, 255, 0.6);
+      }
+    }
+
+    @keyframes compareFlash {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-25px) scale(1.1); }
+    }
+
+    @keyframes sortedPulse {
+      0% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+      }
+      25% {
+        transform: scale(1.15) rotate(5deg);
+        filter: brightness(1.5);
+      }
+      50% {
+        transform: scale(0.95) rotate(-3deg);
+        filter: brightness(1.2);
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+      }
+    }
+
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    .legend-color {
+      width: 25px;
+      height: 15px;
+      border: 1px solid currentColor;
+    }
+
+    .stats-panel {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 0, 255, 0.5);
+      padding: 1rem;
+      font-size: 0.85rem;
+      min-width: 180px;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+    }
+
+    .stats-panel h4 {
+      color: #ff00ff;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.3rem 0;
+      color: #00ffff;
+    }
+
+    .stat-label {
+      opacity: 0.8;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: #ff00ff;
+    }
+
+    .completion-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 14, 39, 0.98);
+      border: 3px solid #00ff00;
+      color: #00ff00;
+      padding: 2rem 3rem;
+      font-size: 2rem;
+      font-weight: 900;
+      box-shadow:
+        0 0 30px rgba(0, 255, 0, 0.8),
+        0 0 60px rgba(0, 255, 0, 0.5),
+        inset 0 0 30px rgba(0, 255, 0, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      animation: completionGlow 1.5s ease-in-out infinite;
+    }
+
+    .completion-message.show {
+      opacity: 1;
+    }
+
+    @keyframes completionGlow {
+      0%, 100% {
+        text-shadow:
+          0 0 10px rgba(0, 255, 0, 0.8),
+          0 0 20px rgba(0, 255, 0, 0.6);
+      }
+      50% {
+        text-shadow:
+          0 0 20px rgba(0, 255, 0, 1),
+          0 0 40px rgba(0, 255, 0, 0.8),
+          0 0 60px rgba(0, 255, 0, 0.6);
+      }
+    }
+
+    /* 赛博朋克装饰线 */
+    .cyber-line {
+      position: absolute;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ff00ff, transparent);
+      animation: lineSweep 3s linear infinite;
+    }
+
+    @keyframes lineSweep {
+      0% { width: 0; left: 0; }
+      50% { width: 100%; left: 0; }
+      100% { width: 0; left: 100%; }
+    }
+
+    /* 暂停时冻结动画 */
+    body.paused,
+    body.paused *,
+    body.paused::before,
+    body.paused::after {
+      animation-play-state: paused !important;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1>◢ 选择排序 ◣</h1>
+    <p class="subtitle">// SELECTION SORT ALGORITHM //</p>
+
+    <div class="controls">
+      <button id="startBtn">▶ START</button>
+      <button id="pauseBtn" disabled>⏸ PAUSE</button>
+      <button id="resetBtn">↻ RESET</button>
+      <button id="speedUpBtn">▶▶ SPEED UP</button>
+      <button id="slowDownBtn">◀◀ SLOW DOWN</button>
+    </div>
+
+    <div class="scene-info" id="sceneInfo">
+      <div class="scene-title">SYSTEM READY</div>
+    </div>
+
+    <div class="visualization-container">
+      <div class="cyber-line" style="top: 0;"></div>
+
+
+      <div class="stats-panel" id="statsPanel">
+        <h4>[ 统计面板 ]</h4>
+        <div class="stat-row">
+          <span class="stat-label">当前轮次:</span>
+          <span class="stat-value" id="statRound">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">比较次数:</span>
+          <span class="stat-value" id="statCompares">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">交换次数:</span>
+          <span class="stat-value" id="statSwaps">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">动画速度:</span>
+          <span class="stat-value" id="statSpeed">1x</span>
+        </div>
+      </div>
+      <div class="array-container" id="arrayContainer"></div>
+      <div class="completion-message" id="completionMessage">◢ SORTED ◣</div>
+      <div class="cyber-line" style="bottom: 0;"></div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #ff00ff, #ff0080); border-color: #ff00ff;"></div>
+        <span>当前最小值</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #ffd700, #ffff00); border-color: #ffd700;"></div>
+        <span>正在比较</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #00ff00, #00ff88); border-color: #00ff00;"></div>
+        <span>已排序</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #0a0e27, #00ffff); border-color: #00ffff;"></div>
+        <span>未排序</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let array = [];
+    let animationSpeed = 1;
+    let isRunning = false;
+    let isPaused = false;
+    let stats = {
+      round: 0,
+      compares: 0,
+      swaps: 0
+    };
+
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const speedUpBtn = document.getElementById('speedUpBtn');
+    const slowDownBtn = document.getElementById('slowDownBtn');
+    const arrayContainer = document.getElementById('arrayContainer');
+    const sceneInfo = document.getElementById('sceneInfo');
+    const completionMessage = document.getElementById('completionMessage');
+    const statRound = document.getElementById('statRound');
+    const statCompares = document.getElementById('statCompares');
+    const statSwaps = document.getElementById('statSwaps');
+    const statSpeed = document.getElementById('statSpeed');
+
+    function initArray() {
+      array = [64, 34, 25, 12, 22, 11, 90, 88, 45, 75];
+      stats = { round: 0, compares: 0, swaps: 0 };
+      updateStats();
+      renderArray();
+      completionMessage.classList.remove('show');
+      updateSceneInfo('SYSTEM READY', '');
+    }
+
+    function renderArray(highlights = {}) {
+      arrayContainer.innerHTML = '';
+      array.forEach((value, index) => {
+        // 创建外层包装容器
+        const wrapper = document.createElement('div');
+        wrapper.className = 'bar-wrapper';
+
+        // 添加状态类到 wrapper
+        if (highlights.minimum === index) {
+          wrapper.classList.add('minimum');
+        } else if (highlights.comparing === index) {
+          wrapper.classList.add('comparing');
+        } else if (highlights.sorted && index < highlights.sorted) {
+          wrapper.classList.add('sorted');
+        } else {
+          wrapper.classList.add('unsorted');
+        }
+
+        // 创建可动画的容器（高度值+柱子会一起移动）
+        const barContainer = document.createElement('div');
+        barContainer.className = 'bar-container';
+
+        // 高度标签（柱子上方）
+        const valueLabel = document.createElement('div');
+        valueLabel.className = 'bar-value';
+        valueLabel.textContent = value;
+        barContainer.appendChild(valueLabel);
+
+        // 创建柱子
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = `${value * 3}px`;
+        barContainer.appendChild(bar);
+
+        wrapper.appendChild(barContainer);
+
+        // 下标标签（在 bar-container 外，不会跟着动）
+        const indexLabel = document.createElement('div');
+        indexLabel.className = 'bar-index';
+        indexLabel.textContent = `[${index}]`;
+        wrapper.appendChild(indexLabel);
+
+        arrayContainer.appendChild(wrapper);
+      });
+    }
+
+    function updateSceneInfo(title, description) {
+      sceneInfo.innerHTML = `
+        <div class="scene-title">◢ ${title} ◣</div>
+        ${description ? `<div class="scene-description">${description}</div>` : ''}
+      `;
+    }
+
+    function updateStats() {
+      statRound.textContent = stats.round;
+      statCompares.textContent = stats.compares;
+      statSwaps.textContent = stats.swaps;
+      statSpeed.textContent = `${animationSpeed}x`;
+    }
+
+    async function sleep(ms) {
+      const duration = ms / animationSpeed;
+      let elapsed = 0;
+
+      while (elapsed < duration) {
+        if (!isRunning) return;
+
+        // 如果暂停，等待恢复
+        while (isPaused) {
+          if (!isRunning) return;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        const stepTime = Math.min(50, duration - elapsed);
+        await new Promise(resolve => setTimeout(resolve, stepTime));
+        elapsed += stepTime;
+      }
+    }
+
+    // 选择排序算法实现
+    async function selectionSort() {
+      isRunning = true;
+      isPaused = false;
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+      pauseBtn.textContent = '⏸ PAUSE';
+      const n = array.length;
+
+      if (isRunning) {
+        await sleep(1500);
+      }
+
+      for (let i = 0; i < n - 1; i++) {
+        if (!isRunning) break;
+
+        stats.round = i + 1;
+        updateStats();
+        updateSceneInfo(
+          `第 ${i + 1} 轮排序`,
+          `在未排序区域 [${i}~${n-1}] 中寻找最小值...`
+        );
+
+        let minIndex = i;
+        renderArray({ sorted: i, minimum: minIndex });
+
+        // 第一轮等待
+        if (i === 0) {
+          await sleep(2000);
+          await sleep(500);
+        } else {
+          await sleep(800);
+        }
+
+        // 查找最小值
+        for (let j = i + 1; j < n; j++) {
+          if (!isRunning) break;
+
+          stats.compares++;
+          updateStats();
+
+          // 高亮当前比较的元素
+          renderArray({ sorted: i, minimum: minIndex, comparing: j });
+          await sleep(600);
+
+          if (array[j] < array[minIndex]) {
+            minIndex = j;
+            renderArray({ sorted: i, minimum: minIndex });
+            await sleep(400);
+          }
+        }
+
+        // 交换最小值到已排序区域
+        if (minIndex !== i) {
+          stats.swaps++;
+          updateStats();
+
+          updateSceneInfo(
+            `第 ${i + 1} 轮排序`,
+            `找到最小值 ${array[minIndex]}，与位置 ${i} 的 ${array[i]} 交换`
+          );
+
+          // 第一次交换等待
+          if (i === 0) {
+            await sleep(1800);
+            await sleep(200);
+          }
+
+          [array[i], array[minIndex]] = [array[minIndex], array[i]];
+          renderArray({ sorted: i, minimum: minIndex });
+          await sleep(1000);
+        }
+
+        // 标记为已排序
+        renderArray({ sorted: i + 1 });
+        await sleep(600);
+      }
+
+      // 排序完成
+      if (isRunning) {
+        renderArray({ sorted: n });
+        await sleep(500);
+        updateSceneInfo('排序完成', `总共 ${stats.compares} 次比较，${stats.swaps} 次交换`);
+
+        completionMessage.classList.add('show');
+        await sleep(2500);
+        completionMessage.classList.remove('show');
+      }
+
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      document.body.classList.remove('paused');
+      isRunning = false;
+      isPaused = false;
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        initArray();
+        selectionSort();
+      }
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      isPaused = !isPaused;
+      if (isPaused) {
+        pauseBtn.textContent = '▶ CONTINUE';
+        updateSceneInfo('已暂停', '点击 CONTINUE 继续排序');
+        document.body.classList.add('paused');
+      } else {
+        pauseBtn.textContent = '⏸ PAUSE';
+        document.body.classList.remove('paused');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      isRunning = false;
+      isPaused = false;
+      pauseBtn.disabled = true;
+      pauseBtn.textContent = '⏸ PAUSE';
+      document.body.classList.remove('paused');
+      initArray();
+    });
+
+    speedUpBtn.addEventListener('click', () => {
+      if (animationSpeed < 4) {
+        animationSpeed *= 2;
+        updateStats();
+      }
+    });
+
+    slowDownBtn.addEventListener('click', () => {
+      if (animationSpeed > 0.25) {
+        animationSpeed /= 2;
+        updateStats();
+      }
+    });
+
+    // 初始化
+    initArray();
+  </script>
+</body>
+</html>

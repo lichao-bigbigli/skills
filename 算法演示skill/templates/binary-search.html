@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>二分查找动画 - 赛博朋克版</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', "PingFang SC", sans-serif;
+      background:
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        #0a0e27;
+      background-size: 50px 50px;
+      background-position: 0 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #00ffff;
+      overflow: hidden;
+      position: relative;
+      animation: gridScroll 10s linear infinite;
+    }
+
+    @keyframes gridScroll {
+      from {
+        background-position: 0 0;
+      }
+      to {
+        background-position: 0 50px;
+      }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* 16:9 主容器 */
+    .main-container {
+      width: 90vw;
+      max-width: 1600px;
+      aspect-ratio: 16 / 9;
+      background: rgba(10, 14, 39, 0.95);
+      border: 2px solid #ff00ff;
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.5),
+        0 0 40px rgba(0, 255, 255, 0.3),
+        inset 0 0 60px rgba(255, 0, 255, 0.1);
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    /* 赛博朋克霓虹标题 */
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      background: linear-gradient(90deg, #ff00ff, #00ffff, #ff00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow:
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(0, 255, 255, 0.6);
+      animation: neonPulse 2s ease-in-out infinite;
+      letter-spacing: 3px;
+    }
+
+    @keyframes neonPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      text-align: center;
+      color: #00ffff;
+      margin-bottom: 1rem;
+      opacity: 0.8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      border: 2px solid #ff00ff;
+      border-radius: 0;
+      background: transparent;
+      color: #ff00ff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover {
+      background: rgba(255, 0, 255, 0.2);
+      box-shadow:
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(255, 0, 255, 0.5),
+        inset 0 0 10px rgba(255, 0, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+      border-color: #666;
+      color: #666;
+    }
+
+    .scene-info {
+      background: rgba(0, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 0.8rem;
+      border-radius: 0;
+      margin-bottom: 1rem;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    .scene-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      color: #ff00ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .scene-description {
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: #00ffff;
+      opacity: 0.9;
+    }
+
+    /* 主内容区域：左右分栏 */
+    .content-wrapper {
+      display: flex;
+      gap: 1rem;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* 左侧：动画演示区域 */
+    .visualization-container {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 0, 255, 0.3);
+      padding: 1.5rem;
+      flex: 1;
+      position: relative;
+      overflow: visible;
+      box-shadow: inset 0 0 30px rgba(255, 0, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 右侧：代码展示区域 */
+    .code-panel {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 255, 255, 0.4);
+      width: 45%;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .code-panel-header {
+      background: rgba(0, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 0.8rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #00ffff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .code-panel-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 1rem;
+    }
+
+    .code-panel-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .code-panel-content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .code-panel-content::-webkit-scrollbar-thumb {
+      background: rgba(0, 255, 255, 0.5);
+      border-radius: 4px;
+    }
+
+    .code-panel-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 255, 255, 0.8);
+    }
+
+    .code-panel pre {
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #00ffff;
+      text-shadow: 0 0 3px rgba(0, 255, 255, 0.5);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0;
+    }
+
+    .array-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      position: relative;
+      padding: 2rem 0 1.5rem 0;
+    }
+
+    .bar-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .bar-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bar {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0a0e27, #00ffff);
+      border: 2px solid #00ffff;
+      position: relative;
+      box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.6),
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(0, 255, 255, 0.2);
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #00ffff;
+      text-shadow:
+        0 0 5px rgba(0, 255, 255, 0.8),
+        0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    .bar-index {
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #ff00ff;
+      text-shadow:
+        0 0 5px rgba(255, 0, 255, 0.8),
+        0 0 10px rgba(255, 0, 255, 0.5);
+      font-family: 'Orbitron', monospace;
+      background: rgba(255, 0, 255, 0.1);
+      padding: 2px 6px;
+      border: 1px solid rgba(255, 0, 255, 0.3);
+      white-space: nowrap;
+      margin-top: 6px;
+    }
+
+    /* 目标值 */
+    .target-display {
+      background: rgba(255, 0, 255, 0.2);
+      border: 2px solid #ff00ff;
+      padding: 0.6rem 1.5rem;
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: #ff00ff;
+      text-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    /* 中间值 (mid) */
+    .bar-wrapper.mid .bar {
+      background: linear-gradient(135deg, #ff00ff, #ff0080);
+      border-color: #ff00ff;
+      animation: midGlow 1.5s ease-in-out infinite;
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.9),
+        0 0 40px rgba(255, 0, 255, 0.6),
+        inset 0 0 15px rgba(255, 0, 255, 0.4);
+    }
+
+    .bar-wrapper.mid .bar::after {
+      content: "MID";
+      position: absolute;
+      top: -45px;
+      background: #ff00ff;
+      color: #0a0e27;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+    }
+
+    /* 左边界 (left) */
+    .bar-wrapper.left .bar::before {
+      content: "L";
+      position: absolute;
+      top: -45px;
+      left: 0;
+      background: #ffd700;
+      color: #0a0e27;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    }
+
+    /* 右边界 (right) */
+    .bar-wrapper.right .bar::before {
+      content: "R";
+      position: absolute;
+      top: -45px;
+      right: 0;
+      background: #ffd700;
+      color: #0a0e27;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    }
+
+    /* 搜索范围内 */
+    .bar-wrapper.in-range .bar {
+      background: linear-gradient(135deg, #ffd700, #ffff00);
+      border-color: #ffd700;
+      box-shadow:
+        0 0 15px rgba(255, 215, 0, 0.9),
+        0 0 30px rgba(255, 215, 0, 0.6),
+        inset 0 0 10px rgba(255, 215, 0, 0.4);
+      color: #0a0e27;
+      text-shadow: none;
+    }
+
+    /* 已排除 */
+    .bar-wrapper.excluded .bar {
+      background: linear-gradient(135deg, #333, #555);
+      border-color: #666;
+      opacity: 0.3;
+      box-shadow: none;
+    }
+
+    /* 找到目标 */
+    .bar-wrapper.found .bar {
+      background: linear-gradient(135deg, #00ff00, #00ff88);
+      border-color: #00ff00;
+      animation: foundPulse 1s ease-in-out infinite;
+      box-shadow:
+        0 0 30px rgba(0, 255, 0, 0.9),
+        0 0 60px rgba(0, 255, 0, 0.6),
+        inset 0 0 15px rgba(0, 255, 0, 0.4);
+    }
+
+    .bar-wrapper.found .bar::after {
+      content: "FOUND!";
+      position: absolute;
+      top: -45px;
+      background: #00ff00;
+      color: #0a0e27;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+    }
+
+    @keyframes midGlow {
+      0%, 100% {
+        box-shadow:
+          0 0 20px rgba(255, 0, 255, 0.9),
+          0 0 40px rgba(255, 0, 255, 0.6),
+          inset 0 0 15px rgba(255, 0, 255, 0.4);
+      }
+      50% {
+        box-shadow:
+          0 0 30px rgba(255, 0, 255, 1),
+          0 0 60px rgba(255, 0, 255, 0.8),
+          inset 0 0 20px rgba(255, 0, 255, 0.6);
+      }
+    }
+
+    @keyframes foundPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow:
+          0 0 30px rgba(0, 255, 0, 0.9),
+          0 0 60px rgba(0, 255, 0, 0.6),
+          inset 0 0 15px rgba(0, 255, 0, 0.4);
+      }
+      50% {
+        transform: scale(1.15);
+        box-shadow:
+          0 0 50px rgba(0, 255, 0, 1),
+          0 0 100px rgba(0, 255, 0, 0.8),
+          inset 0 0 30px rgba(0, 255, 0, 0.6);
+      }
+    }
+
+    .legend {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.6rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border: 1px solid currentColor;
+    }
+
+    .stats-panel {
+      position: absolute;
+      top: 0.5rem;
+      right: 2rem;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 0, 255, 0.5);
+      padding: 0.6rem 0.8rem;
+      font-size: 0.7rem;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+      min-width: 150px;
+      z-index: 10;
+    }
+
+    .stats-panel h4 {
+      color: #ff00ff;
+      font-size: 0.7rem;
+      margin-bottom: 0.4rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.25rem 0;
+      color: #00ffff;
+      font-size: 0.65rem;
+    }
+
+    .stat-label {
+      opacity: 0.8;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: #ff00ff;
+      margin-left: 0.5rem;
+    }
+
+    .completion-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 14, 39, 0.98);
+      border: 3px solid #00ff00;
+      color: #00ff00;
+      padding: 2rem 3rem;
+      font-size: 2rem;
+      font-weight: 900;
+      box-shadow:
+        0 0 30px rgba(0, 255, 0, 0.8),
+        0 0 60px rgba(0, 255, 0, 0.5),
+        inset 0 0 30px rgba(0, 255, 0, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      animation: completionGlow 1.5s ease-in-out infinite;
+      text-align: center;
+    }
+
+    .completion-message.show {
+      opacity: 1;
+    }
+
+    .completion-message.not-found {
+      border-color: #ff0000;
+      color: #ff0000;
+      box-shadow:
+        0 0 30px rgba(255, 0, 0, 0.8),
+        0 0 60px rgba(255, 0, 0, 0.5),
+        inset 0 0 30px rgba(255, 0, 0, 0.2);
+    }
+
+    @keyframes completionGlow {
+      0%, 100% {
+        text-shadow:
+          0 0 10px currentColor,
+          0 0 20px currentColor;
+      }
+      50% {
+        text-shadow:
+          0 0 20px currentColor,
+          0 0 40px currentColor,
+          0 0 60px currentColor;
+      }
+    }
+
+
+    /* 赛博朋克装饰线 */
+    .cyber-line {
+      position: absolute;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ff00ff, transparent);
+      animation: lineSweep 3s linear infinite;
+    }
+
+    @keyframes lineSweep {
+      0% { width: 0; left: 0; }
+      50% { width: 100%; left: 0; }
+      100% { width: 0; left: 100%; }
+    }
+
+    /* 暂停时冻结动画 */
+    body.paused,
+    body.paused *,
+    body.paused::before,
+    body.paused::after {
+      animation-play-state: paused !important;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1>◢ 二分查找 ◣</h1>
+    <p class="subtitle">// BINARY SEARCH ALGORITHM //</p>
+
+    <div class="stats-panel" id="statsPanel">
+      <h4>[ 统计面板 ]</h4>
+      <div class="stat-row">
+        <span class="stat-label">比较次数:</span>
+        <span class="stat-value" id="statCompares">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">搜索轮次:</span>
+        <span class="stat-value" id="statRound">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">搜索范围:</span>
+        <span class="stat-value" id="statRange">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">动画速度:</span>
+        <span class="stat-value" id="statSpeed">1x</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn">▶ START</button>
+      <button id="pauseBtn" disabled>⏸ PAUSE</button>
+      <button id="resetBtn">↻ RESET</button>
+      <button id="speedUpBtn">▶▶ SPEED UP</button>
+      <button id="slowDownBtn">◀◀ SLOW DOWN</button>
+    </div>
+
+    <div class="scene-info" id="sceneInfo">
+      <div class="scene-title">SYSTEM READY</div>
+    </div>
+
+    <!-- 主内容区域：左侧动画 + 右侧代码 -->
+    <div class="content-wrapper">
+      <!-- 左侧：动画演示区域 -->
+      <div class="visualization-container">
+        <div class="cyber-line" style="top: 0;"></div>
+
+        <div class="target-display" id="targetDisplay">TARGET: ?</div>
+
+        <div class="array-container" id="arrayContainer"></div>
+        <div class="completion-message" id="completionMessage">◢ FOUND ◣</div>
+        <div class="cyber-line" style="bottom: 0;"></div>
+      </div>
+
+      <!-- 右侧：代码展示区域 -->
+      <div class="code-panel">
+        <div class="code-panel-header">◢ 核心算法 ◣</div>
+        <div class="code-panel-content">
+          <pre id="cppCode">int binarySearch(int arr[], int target) {
+    int left = 0;
+    int right = n - 1;
+
+    while (left &lt;= right) {
+        // 计算中间位置
+        int mid = left + (right - left) / 2;
+
+        // 找到目标值
+        if (arr[mid] == target) {
+            return mid;
+        }
+
+        // 目标在左半部分
+        else if (arr[mid] &gt; target) {
+            right = mid - 1;
+        }
+
+        // 目标在右半部分
+        else {
+            left = mid + 1;
+        }
+    }
+
+    return -1;  // 未找到
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(135deg, #ff00ff, #ff0080); border-color: #ff00ff;"></div>
+        <span>中间值 (mid)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(135deg, #ffd700, #ffff00); border-color: #ffd700;"></div>
+        <span>搜索范围</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(135deg, #00ff00, #00ff88); border-color: #00ff00;"></div>
+        <span>找到目标</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(135deg, #333, #555); border-color: #666;"></div>
+        <span>已排除</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let array = [];
+    let target = 45;
+    let animationSpeed = 1;
+    let isRunning = false;
+    let isPaused = false;
+    let stats = {
+      round: 0,
+      compares: 0,
+      rangeSize: 0
+    };
+
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const speedUpBtn = document.getElementById('speedUpBtn');
+    const slowDownBtn = document.getElementById('slowDownBtn');
+    const arrayContainer = document.getElementById('arrayContainer');
+    const sceneInfo = document.getElementById('sceneInfo');
+    const completionMessage = document.getElementById('completionMessage');
+    const targetDisplay = document.getElementById('targetDisplay');
+    const statRound = document.getElementById('statRound');
+    const statCompares = document.getElementById('statCompares');
+    const statRange = document.getElementById('statRange');
+    const statSpeed = document.getElementById('statSpeed');
+
+    function initArray() {
+      // 有序数组 - 二分查找的前提
+      array = [11, 12, 22, 25, 34, 45, 64, 75, 88, 90];
+      target = 45; // 目标值
+      stats = { round: 0, compares: 0, rangeSize: array.length };
+      updateStats();
+      renderArray();
+      completionMessage.classList.remove('show');
+      completionMessage.classList.remove('not-found');
+      targetDisplay.textContent = `TARGET: ${target}`;
+      updateSceneInfo('SYSTEM READY', `在有序数组中查找目标值 ${target}`);
+    }
+
+    function renderArray(highlights = {}) {
+      arrayContainer.innerHTML = '';
+      array.forEach((value, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'bar-wrapper';
+
+        // 添加状态类
+        if (highlights.found === index) {
+          wrapper.classList.add('found');
+        } else if (highlights.mid === index) {
+          wrapper.classList.add('mid');
+        } else if (highlights.left === index) {
+          wrapper.classList.add('left', 'in-range');
+        } else if (highlights.right === index) {
+          wrapper.classList.add('right', 'in-range');
+        } else if (highlights.left !== undefined && highlights.right !== undefined) {
+          if (index >= highlights.left && index <= highlights.right) {
+            wrapper.classList.add('in-range');
+          } else {
+            wrapper.classList.add('excluded');
+          }
+        }
+
+        const barContainer = document.createElement('div');
+        barContainer.className = 'bar-container';
+
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.textContent = value;
+        barContainer.appendChild(bar);
+
+        wrapper.appendChild(barContainer);
+
+        const indexLabel = document.createElement('div');
+        indexLabel.className = 'bar-index';
+        indexLabel.textContent = `[${index}]`;
+        wrapper.appendChild(indexLabel);
+
+        arrayContainer.appendChild(wrapper);
+      });
+    }
+
+    function updateSceneInfo(title, description) {
+      sceneInfo.innerHTML = `
+        <div class="scene-title">◢ ${title} ◣</div>
+        ${description ? `<div class="scene-description">${description}</div>` : ''}
+      `;
+    }
+
+    function updateStats() {
+      statRound.textContent = stats.round;
+      statCompares.textContent = stats.compares;
+      statRange.textContent = stats.rangeSize;
+      statSpeed.textContent = `${animationSpeed}x`;
+    }
+
+    async function sleep(ms) {
+      const duration = ms / animationSpeed;
+      let elapsed = 0;
+
+      while (elapsed < duration) {
+        if (!isRunning) return;
+
+        while (isPaused) {
+          if (!isRunning) return;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        const stepTime = Math.min(50, duration - elapsed);
+        await new Promise(resolve => setTimeout(resolve, stepTime));
+        elapsed += stepTime;
+      }
+    }
+
+    // 二分查找算法实现
+    async function binarySearch() {
+      isRunning = true;
+      isPaused = false;
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+      pauseBtn.textContent = '⏸ PAUSE';
+
+      let left = 0;
+      let right = array.length - 1;
+      let foundIndex = -1;
+
+      updateSceneInfo('开始查找', `在有序数组中查找目标值 ${target}`);
+      await sleep(1500);
+
+      while (left <= right) {
+        if (!isRunning) break;
+
+        stats.round++;
+        stats.rangeSize = right - left + 1;
+        updateStats();
+
+        // 显示当前搜索范围
+        renderArray({ left: left, right: right });
+        updateSceneInfo(
+          `第 ${stats.round} 轮查找`,
+          `搜索范围: [${left}] ~ [${right}]，共 ${stats.rangeSize} 个元素`
+        );
+        await sleep(1200);
+
+        // 计算中间位置
+        const mid = Math.floor((left + right) / 2);
+
+        // 高亮中间元素
+        renderArray({ left: left, right: right, mid: mid });
+        updateSceneInfo(
+          `第 ${stats.round} 轮查找`,
+          `检查中间位置 [${mid}]，值为 ${array[mid]}`
+        );
+        await sleep(1000);
+
+        // 比较
+        stats.compares++;
+        updateStats();
+
+        if (array[mid] === target) {
+          // 找到目标
+          foundIndex = mid;
+          renderArray({ found: mid });
+          updateSceneInfo(
+            '查找成功',
+            `在索引 [${mid}] 找到目标值 ${target}，共比较 ${stats.compares} 次`
+          );
+          await sleep(1000);
+
+          completionMessage.textContent = `◢ FOUND @ [${mid}] ◣`;
+          completionMessage.classList.add('show');
+          await sleep(2500);
+          break;
+        } else if (array[mid] > target) {
+          // 目标在左半部分
+          updateSceneInfo(
+            `第 ${stats.round} 轮查找`,
+            `${array[mid]} > ${target}，目标在左半部分，排除右半部分`
+          );
+          await sleep(1200);
+          right = mid - 1;
+        } else {
+          // 目标在右半部分
+          updateSceneInfo(
+            `第 ${stats.round} 轮查找`,
+            `${array[mid]} < ${target}，目标在右半部分，排除左半部分`
+          );
+          await sleep(1200);
+          left = mid + 1;
+        }
+      }
+
+      // 未找到目标
+      if (isRunning && foundIndex === -1) {
+        renderArray({ left: left, right: right });
+        updateSceneInfo(
+          '查找失败',
+          `未找到目标值 ${target}，共比较 ${stats.compares} 次`
+        );
+        await sleep(800);
+
+        completionMessage.textContent = '◢ NOT FOUND ◣';
+        completionMessage.classList.add('not-found');
+        completionMessage.classList.add('show');
+        await sleep(2500);
+      }
+
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      document.body.classList.remove('paused');
+      isRunning = false;
+      isPaused = false;
+    }
+
+    // 事件监听
+    startBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        initArray();
+        binarySearch();
+      }
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      isPaused = !isPaused;
+      if (isPaused) {
+        pauseBtn.textContent = '▶ CONTINUE';
+        updateSceneInfo('已暂停', '点击 CONTINUE 继续查找');
+        document.body.classList.add('paused');
+      } else {
+        pauseBtn.textContent = '⏸ PAUSE';
+        document.body.classList.remove('paused');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      isRunning = false;
+      isPaused = false;
+      pauseBtn.disabled = true;
+      pauseBtn.textContent = '⏸ PAUSE';
+      document.body.classList.remove('paused');
+      initArray();
+    });
+
+    speedUpBtn.addEventListener('click', () => {
+      if (animationSpeed < 4) {
+        animationSpeed *= 2;
+        updateStats();
+      }
+    });
+
+    slowDownBtn.addEventListener('click', () => {
+      if (animationSpeed > 0.25) {
+        animationSpeed /= 2;
+        updateStats();
+      }
+    });
+
+    // 初始化
+    initArray();
+  </script>
+</body>
+</html>

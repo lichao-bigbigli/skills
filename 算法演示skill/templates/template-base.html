@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>算法演示 - 赛博朋克版</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --cyber-cyan: #00ffff;
+      --cyber-magenta: #ff00ff;
+      --cyber-yellow: #ffd700;
+      --cyber-green: #00ff00;
+      --cyber-dark: #0a0e27;
+    }
+
+    body {
+      font-family: 'Orbitron', "PingFang SC", sans-serif;
+      background:
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        var(--cyber-dark);
+      background-size: 50px 50px;
+      background-position: 0 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--cyber-cyan);
+      overflow: hidden;
+      position: relative;
+      animation: gridScroll 10s linear infinite;
+    }
+
+    @keyframes gridScroll {
+      from { background-position: 0 0; }
+      to { background-position: 0 50px; }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+
+    /* 16:9 主容器 */
+    .main-container {
+      width: 90vw;
+      max-width: 1600px;
+      aspect-ratio: 16 / 9;
+      background: rgba(10, 14, 39, 0.95);
+      border: 2px solid var(--cyber-magenta);
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.5),
+        0 0 40px rgba(0, 255, 255, 0.3),
+        inset 0 0 60px rgba(255, 0, 255, 0.1);
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    /* 赛博朋克霓虹标题 */
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      background: linear-gradient(90deg, var(--cyber-magenta), var(--cyber-cyan), var(--cyber-magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow:
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(0, 255, 255, 0.6);
+      animation: neonPulse 2s ease-in-out infinite;
+      letter-spacing: 3px;
+    }
+
+    @keyframes neonPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      text-align: center;
+      color: var(--cyber-cyan);
+      margin-bottom: 1.5rem;
+      opacity: 0.8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      border: 2px solid var(--cyber-magenta);
+      border-radius: 0;
+      background: transparent;
+      color: var(--cyber-magenta);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover {
+      background: rgba(255, 0, 255, 0.2);
+      box-shadow:
+        0 0 10px rgba(255, 0, 255, 0.8),
+        0 0 20px rgba(255, 0, 255, 0.5),
+        inset 0 0 10px rgba(255, 0, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+      border-color: #666;
+      color: #666;
+    }
+
+    .scene-info {
+      background: rgba(0, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 1rem;
+      border-radius: 0;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+
+    .scene-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--cyber-magenta);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .scene-description {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--cyber-cyan);
+      opacity: 0.9;
+    }
+
+    .visualization-container {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 0, 255, 0.3);
+      padding: 2rem;
+      flex: 1;
+      position: relative;
+      overflow: visible;
+      box-shadow: inset 0 0 30px rgba(255, 0, 255, 0.1);
+    }
+
+    .array-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 10px;
+      height: 100%;
+      position: relative;
+      padding: 3rem 0 2.5rem 0;
+    }
+
+    .bar-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .bar-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bar {
+      width: 55px;
+      background: linear-gradient(to top, var(--cyber-dark), var(--cyber-cyan));
+      border: 2px solid var(--cyber-cyan);
+      position: relative;
+      box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.6),
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(0, 255, 255, 0.2);
+      clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+    }
+
+    .bar-value {
+      font-weight: 900;
+      font-size: 1.1rem;
+      color: var(--cyber-cyan);
+      text-shadow:
+        0 0 5px rgba(0, 255, 255, 0.8),
+        0 0 10px rgba(0, 255, 255, 0.5);
+      font-family: 'Orbitron', monospace;
+      margin-bottom: 8px;
+      white-space: nowrap;
+    }
+
+    .bar-index {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--cyber-magenta);
+      text-shadow:
+        0 0 5px rgba(255, 0, 255, 0.8),
+        0 0 10px rgba(255, 0, 255, 0.5);
+      font-family: 'Orbitron', monospace;
+      background: rgba(255, 0, 255, 0.1);
+      padding: 2px 8px;
+      border: 1px solid rgba(255, 0, 255, 0.3);
+      white-space: nowrap;
+      margin-top: 8px;
+    }
+
+    /* 状态样式 - 根据算法需要自定义 */
+    .bar-wrapper.highlight1 .bar {
+      background: linear-gradient(to top, var(--cyber-magenta), #ff0080);
+      border-color: var(--cyber-magenta);
+      box-shadow:
+        0 0 20px rgba(255, 0, 255, 0.9),
+        0 0 40px rgba(255, 0, 255, 0.6),
+        inset 0 0 15px rgba(255, 0, 255, 0.4);
+    }
+
+    .bar-wrapper.highlight2 .bar {
+      background: linear-gradient(to top, var(--cyber-yellow), #ffff00);
+      border-color: var(--cyber-yellow);
+      box-shadow:
+        0 0 15px rgba(255, 215, 0, 0.9),
+        0 0 30px rgba(255, 215, 0, 0.6),
+        inset 0 0 10px rgba(255, 215, 0, 0.4);
+    }
+
+    .bar-wrapper.sorted .bar {
+      background: linear-gradient(to top, var(--cyber-green), #00ff88);
+      border-color: var(--cyber-green);
+      box-shadow:
+        0 0 15px rgba(0, 255, 0, 0.8),
+        0 0 30px rgba(0, 255, 0, 0.5),
+        inset 0 0 10px rgba(0, 255, 0, 0.3);
+    }
+
+    .bar-wrapper.unsorted .bar {
+      opacity: 0.6;
+    }
+
+    .stats-panel {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 0, 255, 0.5);
+      padding: 1rem;
+      font-size: 0.85rem;
+      min-width: 180px;
+      box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+    }
+
+    .stats-panel h4 {
+      color: var(--cyber-magenta);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.3rem 0;
+      color: var(--cyber-cyan);
+    }
+
+    .stat-label {
+      opacity: 0.8;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--cyber-magenta);
+    }
+
+    .completion-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 14, 39, 0.98);
+      border: 3px solid var(--cyber-green);
+      color: var(--cyber-green);
+      padding: 2rem 3rem;
+      font-size: 2rem;
+      font-weight: 900;
+      box-shadow:
+        0 0 30px rgba(0, 255, 0, 0.8),
+        0 0 60px rgba(0, 255, 0, 0.5),
+        inset 0 0 30px rgba(0, 255, 0, 0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      animation: completionGlow 1.5s ease-in-out infinite;
+    }
+
+    .completion-message.show {
+      opacity: 1;
+    }
+
+    @keyframes completionGlow {
+      0%, 100% {
+        text-shadow:
+          0 0 10px rgba(0, 255, 0, 0.8),
+          0 0 20px rgba(0, 255, 0, 0.6);
+      }
+      50% {
+        text-shadow:
+          0 0 20px rgba(0, 255, 0, 1),
+          0 0 40px rgba(0, 255, 0, 0.8),
+          0 0 60px rgba(0, 255, 0, 0.6);
+      }
+    }
+
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+    }
+
+    .legend-color {
+      width: 25px;
+      height: 15px;
+      border: 1px solid currentColor;
+    }
+
+    /* 暂停时冻结动画 */
+    body.paused,
+    body.paused *,
+    body.paused::before,
+    body.paused::after {
+      animation-play-state: paused !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1>◢ 算法名称 ◣</h1>
+    <p class="subtitle">// ALGORITHM NAME //</p>
+
+    <div class="controls">
+      <button id="startBtn">▶ START</button>
+      <button id="pauseBtn" disabled>⏸ PAUSE</button>
+      <button id="resetBtn">↻ RESET</button>
+      <button id="speedUpBtn">▶▶ SPEED UP</button>
+      <button id="slowDownBtn">◀◀ SLOW DOWN</button>
+    </div>
+
+    <div class="scene-info" id="sceneInfo">
+      <div class="scene-title">SYSTEM READY</div>
+    </div>
+
+    <div class="visualization-container">
+      <div class="stats-panel" id="statsPanel">
+        <h4>[ 统计面板 ]</h4>
+        <div class="stat-row">
+          <span class="stat-label">操作次数:</span>
+          <span class="stat-value" id="statOperations">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">比较次数:</span>
+          <span class="stat-value" id="statCompares">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">交换次数:</span>
+          <span class="stat-value" id="statSwaps">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">动画速度:</span>
+          <span class="stat-value" id="statSpeed">1x</span>
+        </div>
+      </div>
+      <div class="array-container" id="arrayContainer"></div>
+      <div class="completion-message" id="completionMessage">◢ COMPLETE ◣</div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #ff00ff, #ff0080); border-color: #ff00ff;"></div>
+        <span>状态1</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #ffd700, #ffff00); border-color: #ffd700;"></div>
+        <span>状态2</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #00ff00, #00ff88); border-color: #00ff00;"></div>
+        <span>已完成</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: linear-gradient(to top, #0a0e27, #00ffff); border-color: #00ffff;"></div>
+        <span>默认</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========== 全局状态 ==========
+    let array = [];
+    let animationSpeed = 1;
+    let isRunning = false;
+    let isPaused = false;
+    let stats = {
+      operations: 0,
+      compares: 0,
+      swaps: 0
+    };
+
+    // ========== DOM 元素引用 ==========
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const speedUpBtn = document.getElementById('speedUpBtn');
+    const slowDownBtn = document.getElementById('slowDownBtn');
+    const arrayContainer = document.getElementById('arrayContainer');
+    const sceneInfo = document.getElementById('sceneInfo');
+    const completionMessage = document.getElementById('completionMessage');
+    const statOperations = document.getElementById('statOperations');
+    const statCompares = document.getElementById('statCompares');
+    const statSwaps = document.getElementById('statSwaps');
+    const statSpeed = document.getElementById('statSpeed');
+
+    // ========== 核心函数 ==========
+
+    // 初始化数组
+    function initArray() {
+      // 修改这里设置初始数组
+      array = [64, 34, 25, 12, 22, 11, 90, 88, 45, 75];
+      stats = { operations: 0, compares: 0, swaps: 0 };
+      updateStats();
+      renderArray();
+      completionMessage.classList.remove('show');
+      updateSceneInfo('SYSTEM READY', '');
+    }
+
+    // 渲染数组可视化
+    function renderArray(highlights = {}) {
+      arrayContainer.innerHTML = '';
+      array.forEach((value, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'bar-wrapper';
+
+        // 根据highlights添加状态类
+        if (highlights.highlight1 === index) {
+          wrapper.classList.add('highlight1');
+        } else if (highlights.highlight2 === index) {
+          wrapper.classList.add('highlight2');
+        } else if (highlights.sorted && index < highlights.sorted) {
+          wrapper.classList.add('sorted');
+        } else {
+          wrapper.classList.add('unsorted');
+        }
+
+        const barContainer = document.createElement('div');
+        barContainer.className = 'bar-container';
+
+        const valueLabel = document.createElement('div');
+        valueLabel.className = 'bar-value';
+        valueLabel.textContent = value;
+        barContainer.appendChild(valueLabel);
+
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = `${value * 3}px`;
+        barContainer.appendChild(bar);
+
+        wrapper.appendChild(barContainer);
+
+        const indexLabel = document.createElement('div');
+        indexLabel.className = 'bar-index';
+        indexLabel.textContent = `[${index}]`;
+        wrapper.appendChild(indexLabel);
+
+        arrayContainer.appendChild(wrapper);
+      });
+    }
+
+    // 更新场景说明
+    function updateSceneInfo(title, description) {
+      sceneInfo.innerHTML = `
+        <div class="scene-title">◢ ${title} ◣</div>
+        ${description ? `<div class="scene-description">${description}</div>` : ''}
+      `;
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      statOperations.textContent = stats.operations;
+      statCompares.textContent = stats.compares;
+      statSwaps.textContent = stats.swaps;
+      statSpeed.textContent = `${animationSpeed}x`;
+    }
+
+    // 延迟函数（支持暂停）
+    async function sleep(ms) {
+      const duration = ms / animationSpeed;
+      let elapsed = 0;
+
+      while (elapsed < duration) {
+        if (!isRunning) return;
+
+        while (isPaused) {
+          if (!isRunning) return;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        const stepTime = Math.min(50, duration - elapsed);
+        await new Promise(resolve => setTimeout(resolve, stepTime));
+        elapsed += stepTime;
+      }
+    }
+
+    // ========== 算法实现 ==========
+    // 在这里实现你的算法
+    async function runAlgorithm() {
+      isRunning = true;
+      isPaused = false;
+      startBtn.disabled = true;
+      pauseBtn.disabled = false;
+      pauseBtn.textContent = '⏸ PAUSE';
+      const n = array.length;
+
+      updateSceneInfo('算法运行中', '正在执行算法...');
+      await sleep(1000);
+
+      // TODO: 在这里实现具体的算法逻辑
+      // 示例：遍历数组
+      for (let i = 0; i < n; i++) {
+        if (!isRunning) break;
+
+        stats.operations++;
+        updateStats();
+
+        renderArray({ highlight1: i });
+        await sleep(500);
+      }
+
+      // 完成
+      if (isRunning) {
+        renderArray({ sorted: n });
+        await sleep(500);
+        updateSceneInfo('算法完成', `总共执行 ${stats.operations} 次操作`);
+        completionMessage.classList.add('show');
+        await sleep(2500);
+        completionMessage.classList.remove('show');
+      }
+
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      document.body.classList.remove('paused');
+      isRunning = false;
+      isPaused = false;
+    }
+
+    // ========== 事件监听 ==========
+
+    startBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        initArray();
+        runAlgorithm();
+      }
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      isPaused = !isPaused;
+      if (isPaused) {
+        pauseBtn.textContent = '▶ CONTINUE';
+        updateSceneInfo('已暂停', '点击 CONTINUE 继续');
+        document.body.classList.add('paused');
+      } else {
+        pauseBtn.textContent = '⏸ PAUSE';
+        document.body.classList.remove('paused');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      isRunning = false;
+      isPaused = false;
+      pauseBtn.disabled = true;
+      pauseBtn.textContent = '⏸ PAUSE';
+      document.body.classList.remove('paused');
+      initArray();
+    });
+
+    speedUpBtn.addEventListener('click', () => {
+      if (animationSpeed < 4) {
+        animationSpeed *= 2;
+        updateStats();
+      }
+    });
+
+    slowDownBtn.addEventListener('click', () => {
+      if (animationSpeed > 0.25) {
+        animationSpeed /= 2;
+        updateStats();
+      }
+    });
+
+    // ========== 初始化 ==========
+    initArray();
+  </script>
+</body>
+</html>
