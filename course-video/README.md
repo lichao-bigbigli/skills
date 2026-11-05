@@ -1,3 +1,4 @@
+```
 course-farewell-video/
 ├── SKILL.md                  # 触发条件、两步交付流程、用户偏好、7 条踩坑记录
 ├── scripts/
@@ -5,6 +6,7 @@ course-farewell-video/
 │   └── make_overlays.py          # 全部字幕/字卡 PNG（支持 --w/--h 任意画幅）
 └── references/
     └── pipeline.md               # 手工分步参数表（脚本不可用时的兜底）
+```
 ---
 name: course-farewell-video
 description: 制作班级结课煽情视频的完整流水线（序章插画+五幕正片+落款+下期预告），用 ffmpeg 对真实课堂素材（老师出镜/课件录屏/学生留言）自动粗剪、烧字幕、配乐混音，输出成片 mp4。当用户提到"结课视频"、"煽情视频"、"课间放的视频"、"结课视频脚本/成片"、"班级纪念视频"，或给出课程录屏/出镜素材要求剪成纪念视频时使用——即使没有明说"煽情"或"结课"。
