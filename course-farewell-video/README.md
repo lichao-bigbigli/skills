@@ -76,7 +76,7 @@
 skills/course-farewell-video/
 ├── SKILL.md                    # 模型读的作业指导（触发词、流程、偏好、踩坑）
 ├── README.md                   # 使用说明
-├── references/pipeline.md      # 分步参数表（模型手工剪辑时的参考）
+├── pipeline.md      # 分步参数表（模型手工剪辑时的参考）
 └── scripts/
     ├── build_farewell_video.sh # 一键合成脚本
     └── make_overlays.py        # 字幕/字卡渲染（改文案直接改这个文件里的文字）
